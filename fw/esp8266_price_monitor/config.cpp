@@ -13,7 +13,7 @@ void default_config(Configuration* conf)
 {
     strcpy(conf->ssid, "MyWifi");
     strcpy(conf->password, "foobar");
-    strcpy(conf->url, "http://ikonen.me/price/spot");
+    strcpy(conf->url, "http://somesite.me/price/spot");
     conf->interval = DEFAULT_INTERVAL_S;
     conf->scale = DEFAULT_SCALE;
 };

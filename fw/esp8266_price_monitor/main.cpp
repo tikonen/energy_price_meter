@@ -124,6 +124,9 @@ void setup()
         WiFi.mode(WIFI_STA);
         WiFi.begin(config.ssid, config.password);
 
+        // Automatic sleep saves energy during long periods of inactivity
+        WiFi.setSleepMode(WIFI_LIGHT_SLEEP, 3);  // Automatic Light Sleep, DTIM listen interval = 3
+
         sweep_meter();
 
         // Wait until Wi-Fi connected
@@ -178,6 +181,16 @@ bool fetch_and_process()
     return success;
 }
 
+void longsleep(int ms)
+{
+    do {
+        // sleep in 1s chunks
+        int s = min(ms, 1000);
+        delay(s);
+        ms -= s;
+    } while (ms > 0);
+}
+
 void loop()
 {
     static int backoff = 2;  // seconds
@@ -186,12 +199,11 @@ void loop()
         return;
     }
     if (fetch_and_process()) {
-        // todo, might be beneficial to go to sleep here?
-        delay(config.interval);
+        longsleep(config.interval);
         backoff = 2;
     } else {
         // exponential backoff of retries
-        delay(backoff * 1000);
+        longsleep(backoff * 1000);
         backoff *= 2;
         if (backoff > config.interval) backoff = config.interval;
     }

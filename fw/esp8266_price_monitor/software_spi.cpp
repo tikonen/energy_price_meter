@@ -31,9 +31,9 @@ void sw_spi_transfer16(const SoftwareSPI* spi, uint16_t* data)
     // swap to MSB
     uint8_t l = *data & 0xFF;
     uint8_t h = (*data >> 8) & 0xFF;
-    uint16_t sdata = (l << 8) | h;
+    *data = (l << 8) | h;
 
-    sw_spi_transfer(spi, &sdata, 2);
+    sw_spi_transfer(spi, data, 2);
 }
 
 void sw_spi_transfer(const SoftwareSPI* spi, void* data, int len)

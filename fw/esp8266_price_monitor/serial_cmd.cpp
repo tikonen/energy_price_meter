@@ -3,7 +3,7 @@
 #include "serial_cmd.hpp"
 
 // Ring buffer length should be power of 2 so that the compiler can optimize the
-// expensive modulo division to simple bitwise AND
+// expensive modulo division to a simple bitwise AND
 #define RING_BUFFER_LEN 1024
 
 struct RingBuffer {
@@ -76,7 +76,7 @@ static char* parse_line(struct RingBuffer& rb)
 const char* serial_read_line()
 {
     // read data from serial to local ringbuffer.
-    // There is a change that too long lines will wrap the ringbuffer and
+    // *CAUTION* There is a change that too long lines will wrap the ringbuffer and
     // overwrite yet unread data.
     while (Serial.available()) {
         byte c = Serial.read();

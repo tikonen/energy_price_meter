@@ -1,6 +1,6 @@
 #pragma once
 
-// Bit banging implementation for SPI.
+// Bit banging SPI implementation.
 
 struct SoftwareSPI {
     int mosipin;

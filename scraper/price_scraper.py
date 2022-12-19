@@ -2,6 +2,9 @@
 
 # Read a HTML site and attempt find and print out an specific list item value
 
+import re
+import os
+import argparse
 import gzip
 from urllib.request import Request, urlopen
 from datetime import datetime
@@ -11,9 +14,7 @@ try:
 except ImportError:
     from bs4 import BeautifulSoup
 
-
-
-def scrape_data(html):
+def scrape_current_price(html):
 
     now = datetime.now()
     hs = now.hour
@@ -35,7 +36,26 @@ def scrape_data(html):
 
     return price
 
+def scrape_todays_prices(html):
 
+    prices = []
+    hrex = re.compile(r'^(\d\d)[^\d]+(\d\d)$')
+
+    e = BeautifulSoup(html, features='html.parser')
+    ul = e.body.find('div', id='today-wrapper').find('ul', class_='spotprice-list mt-3')
+    for li in ul('li'):
+        span = li.find('span')
+        if not span:
+            continue
+        m = hrex.match(span.text)
+        if m:
+            price = li.find('pricedata').text.strip()
+            prices.append((m[1], price))
+
+    return prices
+
+
+# Chrome headers
 headers = {
     'sec-ch-ua': '"Not?A_Brand";v="8", "Chromium";v="108", "Google Chrome";v="108"',
     'sec-ch-ua-mobile': '?0',
@@ -53,23 +73,53 @@ headers = {
     'sec-gpc': '1'
 }
 
-URL='https://www.herrfors.fi/fi/spot-hinnat/'
+def parse_test(filename):
+    print(scrape_current_price(html))
+    print(scrape_todays_prices(html))
 
-#html = open("testdata/herrfors.fi-response.txt", "r", encoding='Latin1').read()
+def load_html(url, verbose):
+    if verbose:
+        print("Requesting", url)
 
-req = Request(URL, None, headers)
-resp = urlopen(req)
+    req = Request(url, None, headers)
+    resp = urlopen(req)
 
-#print(resp.info())
+    if verbose:
+        print(resp.info())
 
-if resp.info().get('Content-Encoding') == 'gzip':
-    f = gzip.GzipFile(fileobj=resp)
-    data = f.read()
-else:
-    data = resp.read()
-html = data.decode('utf-8')
+    if resp.info().get('Content-Encoding') == 'gzip':
+        f = gzip.GzipFile(fileobj=resp)
+        data = f.read()
+    else:
+        data = resp.read()
+    html = data.decode('utf-8')
+    return html
 
-price = scrape_data(html)
-print("Price is %s" % price)
-open('spot', "w", encoding='Latin1').write(price)
+def main():
+    parser = argparse.ArgumentParser(description='Scraper')
+    parser.add_argument('--verbose', action='store_true', help='verbose mode')
+    parser.add_argument('--out', metavar='OUT', type=str, help='Output folder')
+    parser.add_argument("url", metavar='URL', type=str, help='URL to scrape')
+    args = parser.parse_args()
 
+    html = load_html(args.url, args.verbose)
+    #html = open("testdata/response.txt", "r", encoding='Latin1').read()
+
+    price = scrape_current_price(html)
+    print("Current price is %s" % price)
+
+    outputpath = args.out if args.out else '';
+    outputfile = os.path.join(outputpath, 'spot')
+    if args.verbose:
+        print("Writing to ", outputfile)
+    open(outputfile, "w", encoding='Latin1').write(price)
+
+    prices = scrape_todays_prices(html)
+    for p in prices:
+        outputfile = os.path.join(outputpath, p[0]+'-spot')
+        if args.verbose:
+            print("Writing to ", outputfile)
+        open(outputfile, "w", encoding='Latin1').write(p[1])
+
+if __name__ == '__main__':
+    main()
