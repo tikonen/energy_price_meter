@@ -4,7 +4,6 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
 #include <FS.h>
-#include <regex>
 
 #include "main.hpp"
 #include "menu.hpp"
@@ -84,22 +83,11 @@ void config_handler()
     serial_printf("Enter URL[%s]>", config->url);
     in = get_user_input();
 
-    if (strlen(in)) {
-        // Validate url with regex that matches strings like
-        // http://www.someserver.com:90/kissa/index.html
-        // http://www.someserver.com/kissa/spot
-        // http://www.someserver.com/
-        // http://www.someserver.com:30
-        // http://www.someserver.com
-        //
-        std::regex urlre = std::regex(R"_(^http:\/\/([^:\/]+)(:\d+)?(\/.*)$)_");
-
-        if (std::regex_match(in, urlre)) {
-            SET_CONF_FIELD(config, url, in);
-            modified = true;
-        } else {
-            serial_println(SER_EOL "Invalid URL");
-        }
+    if (strlen(in) > 8 && strncmp(in, "http://", 7) == 0) {
+        SET_CONF_FIELD(config, url, in);
+        modified = true;
+    } else {
+        serial_println(SER_EOL "Invalid URL");
     }
 
     serial_printfln(SER_EOL "URL: %s", config->url);
@@ -235,6 +223,7 @@ void url_test_handler()
             while (client.available()) {
                 serial_write_char(client.read());
             }
+            serial_println("");
 
             http.end();
             return;

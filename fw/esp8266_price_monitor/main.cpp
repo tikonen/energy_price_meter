@@ -68,19 +68,20 @@ protected:
 // Move meter back and forth to indicate full range of motion
 void sweep_meter()
 {
-    const int sleeptms = 10;      // milliseconds
+    const int steps = 100;
     const float totalTime = 1.5;  // seconds
-    const float step = totalTime / (sleeptms / 1000.0f);
 
-    for (float t = 0; t < 1; t += step) {
+    for (int s = 0; s <= steps; s++) {
+        float t = float(s) / steps;
         MCP482x_setLevel(&spi, VOLTAGE_TO_LEVEL(METER_RANGE_V * t));
-        delay(sleeptms);
+        delay(totalTime * 1000 / steps);
     }
     MCP482x_setLevel(&spi, VOLTAGE_TO_LEVEL(METER_RANGE_V));
     delay(500);
-    for (float t = 0; t < 1; t += step) {
+    for (int s = 0; s <= steps; s++) {
+        float t = float(s) / steps;
         MCP482x_setLevel(&spi, VOLTAGE_TO_LEVEL(METER_RANGE_V * (1 - t)));
-        delay(sleeptms);
+        delay(totalTime * 1000 / steps);
     }
     MCP482x_setLevel(&spi, VOLTAGE_TO_LEVEL(0));
     delay(500);
@@ -100,9 +101,11 @@ void setup()
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
-    pinMode(PIN_SHELL, INPUT_PULLUP);
+    pinMode(PIN_SHELL, INPUT);
     delay(1000);
     bool shellMode = !digitalRead(PIN_SHELL);
+
+    // shellMode = true;
 
     if (shellMode) {
         // Indicate shell mode by blinking led rapidly
@@ -199,7 +202,7 @@ void loop()
         return;
     }
     if (fetch_and_process()) {
-        longsleep(config.interval);
+        longsleep(config.interval * 1000);
         backoff = 2;
     } else {
         // exponential backoff of retries
