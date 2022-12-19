@@ -11,7 +11,7 @@ ESP8266 WiFi SoC application fetches peridiocally a number from an URL and sets 
 
 Application was designed to run an vintage analog voltage meter to show the current price of kWh.
 
-Configuration of WiFi credentials, URL and other parameters can be done over serial terminal (115200-8-N-1) that can be activated by keeping the programming button pressed while powering up.
+Configuration of WiFi credentials, URL and other parameters can be done over serial terminal (115200-8-N-1) that can be activated by pressing and keeping the programming button pressed within 1 second from powering up.
 
 **NOTE** Do not leave serial adapter connected on normal operation.
 
