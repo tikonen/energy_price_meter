@@ -25,7 +25,7 @@
 void _putchar(char character) { serial_write_char(character); }
 
 // Pin settings
-#define PIN_SHELL 2
+#define PIN_TERMINAL 2
 
 // SPI settings
 #define PIN_SCLK 2
@@ -77,7 +77,7 @@ void sweep_meter()
         delay(totalTime * 1000 / steps);
     }
     MCP482x_setLevel(&spi, VOLTAGE_TO_LEVEL(METER_RANGE_V));
-    delay(500);
+    delay(2000);
     for (int s = 0; s <= steps; s++) {
         float t = float(s) / steps;
         MCP482x_setLevel(&spi, VOLTAGE_TO_LEVEL(METER_RANGE_V * (1 - t)));
@@ -101,13 +101,18 @@ void setup()
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
-    pinMode(PIN_SHELL, INPUT);
-    delay(1000);
-    bool shellMode = !digitalRead(PIN_SHELL);
+    pinMode(PIN_TERMINAL, INPUT);
 
-    // shellMode = true;
+    // Wait 1 second if terminal button is pressed
+    Timer2 startDelay(false, 1000);
+    bool enterMenu = false;
+    while (startDelay.update() && !enterMenu) {
+        enterMenu = !digitalRead(PIN_TERMINAL);
+    }
 
-    if (shellMode) {
+    // enterMenu = true;
+
+    if (enterMenu) {
         // Indicate shell mode by blinking led rapidly
         for (int i = 0; i < 5; i++) {
             delay(100);
