@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #if !defined(ARDUINO_ESP8266_GENERIC)
+// Install Arduino core from https://github.com/esp8266/Arduino
 #error "This sketch must be compiled for ESP-01 (Generic ESP8266 Module)"
 #endif
 
@@ -32,7 +33,6 @@ void _putchar(char character) { serial_write_char(character); }
 #define PIN_MOSI 1
 #define PIN_CS 0
 #define SPI_FREQ 10000
-#define SCLK_PERIOD_US (1E6 / (SPI_FREQ))
 
 #define METER_RANGE_V 3.0  // Meter display range in volts. Cannot be higher than DAC_SUPPLY
 
