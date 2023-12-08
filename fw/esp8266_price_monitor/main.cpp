@@ -168,8 +168,9 @@ void indicate_price(float price)
     MCP482x_setLevel(&spi, level);
 }
 
-bool fetch_and_process()
+bool fetch_and_process(int* expiress)
 {
+    *expiress = -1;
     bool success = false;
     WiFiClient client;
     HTTPClient http;
@@ -181,6 +182,16 @@ bool fetch_and_process()
             if (!isnan(p)) {
                 indicate_price(p);
                 success = true;
+            }
+            if (http.hasHeader("Cache-Control")) {
+                auto val = http.header("Cache-Control");
+                const char* s = strstr(val.c_str(), "max-age=");
+                if (s) {
+                    int max_age = atoi(s + 8);
+                    if (max_age < 5) max_age = 0;
+                    if (max_age > 3600) max_age = 3600;
+                    *expiress = max_age;
+                }
             }
         }
     }
@@ -201,16 +212,25 @@ void longsleep(int ms)
 
 void loop()
 {
-    static int backoff = 2;  // seconds
+    const int backoff = 2;  // seconds
 
     if (WiFi.status() != WL_CONNECTED) {
         return;
     }
-    if (fetch_and_process()) {
-        longsleep(config.interval * 1000);
+    int expires = 0;
+    if (fetch_and_process(&expires)) {
+        if (expires < 0) {
+            // no valid expiration, sleep default
+            longsleep(config.interval * 1000);
+        } else {
+            // sleep until time to fetch a new value. Add 5s to avoid fetching too early.
+            // TODO. should have randomness to avoid burst to server
+            longsleep((expires + 5) * 1000);
+        }
         backoff = 2;
     } else {
-        // exponential backoff of retries
+        // exponential backoff of retries.
+        // TODO. Add randomness
         longsleep(backoff * 1000);
         backoff *= 2;
         if (backoff > config.interval) backoff = config.interval;
