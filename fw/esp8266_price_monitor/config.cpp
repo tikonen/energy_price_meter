@@ -84,8 +84,7 @@ void write_config(File& f, Configuration* conf)
     f.println(conf->interval);
     f.print(KEY_SCALE);
     f.print('=');
-    f.println(conf->scale);
-    f.close();
+    f.println(conf->scale);    
 }
 
 void init_config(File& f, Configuration* conf)

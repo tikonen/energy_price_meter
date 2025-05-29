@@ -25,9 +25,6 @@
 
 void _putchar(char character) { serial_write_char(character); }
 
-// Pin settings
-#define PIN_TERMINAL 2
-
 // SPI settings
 #define PIN_SCLK 2
 #define PIN_MOSI 1
@@ -101,22 +98,8 @@ void setup()
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
-    pinMode(PIN_TERMINAL, INPUT_PULLUP);
 
-#if 0
-    // Wait 1 second if terminal button is pressed
-    bool enterMenu = false;
-    Timer2 startDelay(false, 1000);
-    while (startDelay.update() && !enterMenu) {
-        enterMenu = !digitalRead(PIN_TERMINAL);
-    }
-#else
-    bool enterMenu = false;
-#endif
-
-    if (enterMenu) {
-        digitalWrite(LED_BUILTIN, HIGH);
-
+    if(start_menu()) {
         menu(&LittleFS, &config);
         while (true)  // never exit
             ;

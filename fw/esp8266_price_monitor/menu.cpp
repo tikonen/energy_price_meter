@@ -115,6 +115,7 @@ void config_file_save_handler()
     File f = filesys->open(CONFIG_FILENAME, "w+");
     if (f) {
         write_config(f, config);
+        f.close();
         modified = false;
         serial_println("Done");
     } else {
@@ -277,11 +278,23 @@ void print_menu()
     serial_println("");
 }
 
+bool start_menu() {
+    Serial.begin(19200);
+    for(int i=0; i < 10 * 1 ; i++) {
+        serial_println(">");
+        if(serial_read_line()) {
+            return true;
+        }
+        delay(200);
+    }
+    Serial.end();
+    return false;
+}
+
 void menu(FS* pfs, Configuration* pconf)
 {
     filesys = pfs;
     config = pconf;
-    Serial.begin(19200);
     print_menu();
     serial_println(">");
 
