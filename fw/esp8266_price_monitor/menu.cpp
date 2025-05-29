@@ -281,7 +281,7 @@ void menu(FS* pfs, Configuration* pconf)
 {
     filesys = pfs;
     config = pconf;
-    Serial.begin(115200);
+    Serial.begin(19200);
     print_menu();
     serial_println(">");
 

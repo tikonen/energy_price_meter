@@ -101,23 +101,21 @@ void setup()
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
-    pinMode(PIN_TERMINAL, INPUT);
+    pinMode(PIN_TERMINAL, INPUT_PULLUP);
 
+#if 0
     // Wait 1 second if terminal button is pressed
-    Timer2 startDelay(false, 1000);
     bool enterMenu = false;
+    Timer2 startDelay(false, 1000);
     while (startDelay.update() && !enterMenu) {
         enterMenu = !digitalRead(PIN_TERMINAL);
     }
-
-    // enterMenu = true;
+#else
+    bool enterMenu = false;
+#endif
 
     if (enterMenu) {
-        // Indicate shell mode by blinking led rapidly
-        for (int i = 0; i < 5; i++) {
-            delay(100);
-            digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-        }
+        digitalWrite(LED_BUILTIN, HIGH);
 
         menu(&LittleFS, &config);
         while (true)  // never exit
@@ -210,10 +208,10 @@ void longsleep(int ms)
     } while (ms > 0);
 }
 
+int backoff = 2;  // seconds
+
 void loop()
 {
-    const int backoff = 2;  // seconds
-
     if (WiFi.status() != WL_CONNECTED) {
         return;
     }
